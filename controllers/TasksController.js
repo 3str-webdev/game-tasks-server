@@ -1,11 +1,8 @@
-let tasks = require("../data/tasks.json");
-const fs = require("fs");
-const path = require("path");
+const { DB_Headers } = require("../db/headers");
 const { v4 } = require("uuid");
+const axios = require("axios").default;
 
 class TaskController {
-  constructor() {}
-
   checkPassword(req, res, next) {
     if (req.body.password !== process.env.POST_PASSWORD) {
       res.status(400).json("Неверный пароль");
@@ -14,46 +11,69 @@ class TaskController {
     next();
   }
 
-  static updateDataFile(data, cb) {
-    fs.writeFile(path.resolve("data", "tasks.json"), JSON.stringify(data), cb);
+  static async updateData(data) {
+    const response = await axios({
+      method: "put",
+      url: process.env.API_BIN_PATH,
+      headers: DB_Headers,
+      data,
+    });
+
+    return response.data;
   }
 
-  static findTaskByTaskId(taskId) {
+  static async getAllTasks() {
+    const response = await axios({
+      method: "get",
+      url: process.env.API_BIN_PATH + "latest",
+      headers: DB_Headers,
+    });
+
+    return response.data;
+  }
+
+  static findTaskByTaskId(tasks, taskId) {
     return tasks.filter((task) => task.taskId === taskId)[0];
   }
 
-  getAll(req, res) {
-    res.json(tasks);
+  async getAll(req, res) {
+    res.json(await TaskController.getAllTasks());
   }
 
-  getByTaskId(req, res) {
-    res.json(tasks.filter((task) => task.taskId == req.params.taskId)[0]);
+  async getByTaskId(req, res) {
+    const taskId = req.params.taskId;
+    const tasks = await TaskController.getAllTasks();
+
+    res.json(TaskController.findTaskByTaskId(tasks, taskId));
   }
 
-  add(req, res) {
+  async add(req, res) {
+    const tasks = await TaskController.getAllTasks();
+
     const currentTaskId =
       tasks.length > 0 ? +tasks[tasks.length - 1].taskId + 1 : 1;
+
     const task = {
       id: v4(),
       taskId: "" + currentTaskId,
       ...req.body.data,
     };
     tasks.push(task);
-    TaskController.updateDataFile(tasks, () => {
-      res.status(202).json({ message: "Задача добавлена" });
-    });
+    res.json(await TaskController.updateData(tasks));
   }
 
-  delete(req, res) {
+  async delete(req, res) {
     const taskId = req.body.data.taskId;
+    let tasks = await TaskController.getAllTasks();
+
     tasks = tasks.filter((task) => task.taskId !== taskId);
-    TaskController.updateDataFile(tasks, () => {
-      res.status(200).json(tasks);
-    });
+    res.json(await TaskController.updateData(tasks));
   }
 
-  update(req, res) {
+  async update(req, res) {
     const taskId = req.body.data.taskId;
+    const tasks = await TaskController.getAllTasks();
+
     for (let i = 0; i < tasks.length; ++i) {
       if (tasks[i].taskId == taskId) {
         Object.keys(req.body.data).forEach((key) => {
@@ -61,10 +81,7 @@ class TaskController {
         });
       }
     }
-    TaskController.updateDataFile(tasks, () => {
-      console.log(tasks[taskId]);
-      res.status(200).json({ message: "Задача обновлена" });
-    });
+    res.json(await TaskController.updateData(tasks));
   }
 }
 
