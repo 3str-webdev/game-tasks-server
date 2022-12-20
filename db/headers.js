@@ -1,5 +1,6 @@
 const DB_Headers = {
   "Content-Type": "application/json",
+  "Accept-Encoding": "gzip,deflate,compress",
   "X-Master-Key": process.env.API_KEY,
   "X-Access-Key": process.env.API_ACCESS_KEY,
   "X-Bin-Meta": false,
