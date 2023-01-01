@@ -1,5 +1,6 @@
 const { DB_Headers } = require("../db/headers");
 const { v4 } = require("uuid");
+const normalizeData = require("../utils/normalizeData");
 const axios = require("axios").default;
 
 class TaskController {
@@ -50,6 +51,7 @@ class TaskController {
   }
 
   async add(req, res) {
+    console.log(1);
     const tasks = await TaskController.getAllTasks();
 
     const currentTaskId =
@@ -58,7 +60,7 @@ class TaskController {
     const task = {
       id: v4(),
       taskId: "" + currentTaskId,
-      ...req.body.data,
+      ...normalizeData(req.body.data),
     };
     tasks.push(task);
     res.json(await TaskController.updateData(tasks));
@@ -79,7 +81,7 @@ class TaskController {
     for (let i = 0; i < tasks.length; ++i) {
       if (tasks[i].taskId == taskId) {
         Object.keys(req.body.data).forEach((key) => {
-          tasks[i][key] = req.body.data[key];
+          tasks[i][key] = normalizeData(req.body.data[key]);
         });
       }
     }
