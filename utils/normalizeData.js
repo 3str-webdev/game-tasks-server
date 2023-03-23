@@ -3,7 +3,6 @@ const normalizeData = (data) => {
   for (const key in data) {
     result[key] = stringToHtml(data[key]);
   }
-  console.log(result);
   return result;
 };
 
@@ -13,9 +12,9 @@ const stringToHtml = (str) => {
 };
 
 const removeTags = (str) => {
-    str = str.replaceAll(/<\w*>\w*<\/\w*>/gi, "");
-    str = str.replaceAll(/<\w*>/gi, "");
-    str = str.replaceAll(/<\/\w*>/gi, "");
+  str = str.replaceAll(/<(\w|\W)*>(\w|\W)*<\/(\w|\W)*>/gi, "");
+  str = str.replaceAll(/<(\w|\W)*>/gi, "");
+  str = str.replaceAll(/<\/(\w|\W)*>/gi, "");
   return str;
 };
 

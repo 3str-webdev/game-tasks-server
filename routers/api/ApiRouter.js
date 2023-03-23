@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const TasksController = require("../../controllers/TasksController");
-// const cors = require("cors");
+const {checkPassword, normalizeRequestData} = require("../../middleware");
 
 router.get("/tasks/getAll", TasksController.getAll);
 
@@ -8,19 +8,17 @@ router.get("/tasks/get/:taskId", TasksController.getByTaskId);
 
 router.post(
   "/tasks/add",
-  TasksController.checkPassword,
+  checkPassword,
+  // normalizeRequestData,
   TasksController.add
 );
 
-router.delete(
-  "/tasks/delete",
-  TasksController.checkPassword,
-  TasksController.delete
-);
+router.delete("/tasks/delete", checkPassword, TasksController.delete);
 
 router.put(
   "/tasks/update",
-  TasksController.checkPassword,
+  checkPassword,
+  // normalizeRequestData,
   TasksController.update
 );
 
